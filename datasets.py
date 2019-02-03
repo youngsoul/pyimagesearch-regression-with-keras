@@ -5,6 +5,7 @@ import glob
 import cv2
 import os
 
+
 def load_house_attributes(inputPath):
     """
     Read in the housing data.  The intial dataset contains 535 rows, but because some zipcodes only
@@ -77,6 +78,54 @@ def process_house_attributes(df, train, test):
     return (trainX, testX)
 
 
+def load_house_images(df, inputPath):
+    """
+    For each index, read the set of 4 images, and creae a 4x4 montage of all separate images
+    to create a single image for each house to train on.
+    :param df:
+    :param inputPath:
+    :return:
+    """
+    # initialize our images array
+    images = []
+
+    # loop over the indexes of the house
+    for i in df.index.values:
+        # find the four images for the house and sort the file paths,
+        # ensuring the four are always in the *same order*
+        basePath = os.path.sep.join([inputPath, "{}_*".format(i + 1)])
+        housePaths = sorted(list(glob.glob(basePath)))
+
+        # initialize our list of input images along with the output image
+        # after *combining* the four input images
+        inputImages = []
+        outputImage = np.zeros((64, 64, 3), dtype="uint8")
+
+        # loop over the input house paths
+        for housePath in housePaths:
+            # load the input image, resize it to be 32 32, and then
+            # update the list of input images
+            image = cv2.imread(housePath)
+            image = cv2.resize(image, (32, 32))
+            inputImages.append(image)
+
+        # tile the four input images in the output image such the first
+        # image goes in the top-right corner, the second image in the
+        # top-left corner, the third image in the bottom-right corner,
+        # and the final image in the bottom-left corner
+        outputImage[0:32, 0:32] = inputImages[0]
+        outputImage[0:32, 32:64] = inputImages[1]
+        outputImage[32:64, 32:64] = inputImages[2]
+        outputImage[32:64, 0:32] = inputImages[3]
+
+        # add the tiled image to our set of images the network will be
+        # trained on
+        images.append(outputImage)
+
+    # return our set of images
+    return np.array(images)
+
+
 if __name__ == '__main__':
     path = '/Users/patrickryan/Development/datasets/Houses-dataset/Houses-Dataset/HousesInfo.txt'
     df = load_house_attributes(path)
@@ -86,8 +135,8 @@ if __name__ == '__main__':
     y = df['price']
 
     from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.3)
 
-    trainX, testX = process_house_attribtes(df, X_train, X_test)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+    trainX, testX = process_house_attributes(df, X_train, X_test)
     print(trainX)
-

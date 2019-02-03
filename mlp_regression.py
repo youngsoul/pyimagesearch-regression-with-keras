@@ -15,7 +15,7 @@ https://www.pyimagesearch.com/2019/01/21/regression-with-keras/
 """
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", type=str, required=False, help="path to directory of house dataset",
-                default="/Users/patrickryan/Development/datasets/Houses-dataset/Houses-Dataset")
+                default="/Users/patrickryan/Development/python/mygithub/ml_datasets/Houses-Dataset")
 args = vars(ap.parse_args())
 
 # construct the path to the input .txt file that contains information
